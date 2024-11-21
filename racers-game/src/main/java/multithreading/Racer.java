@@ -7,11 +7,16 @@ public class Racer extends Thread{
         this.race = race;
         this.number = number;
     }
-    public void run(){
-        //TODO
-        //Running cycle containing number of iterations from the Race reference as the distance 
-        //Each iteration is printing out the number of the thread for game tracing to see game dynamics
-        
-    }
+    @Override
+    public void run() {
+        for (int i = 1; i <= race.getDistance(); i++) {
+            System.out.printf("Racer #%d completed in iteration %d%n", number, i);
 
+            try {
+                Thread.sleep(race.getRandomSleepTime());
+            } catch (InterruptedException e) {
+            }
+        }
+        race.setWinner(number);
+    }
 }

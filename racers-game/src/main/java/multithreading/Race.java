@@ -1,9 +1,32 @@
 package multithreading;
 
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 public class Race {
-//TODO
-//Fields and methods for Race parameters
-// min_sleep_timeout, max_sleep_time for getting some random sleep value in each iteration as random factor for racer-winner definition
-//distance - number of iterations
-//any others possible fields
+    private final int distance;
+    private final int minSleepTime;
+    private final int maxSleepTime;
+    private final AtomicInteger winner = new AtomicInteger(0);
+
+    public Race(int distance, int minSleepTime, int maxSleepTime) {
+        this.distance = distance;
+        this.minSleepTime = minSleepTime;
+        this.maxSleepTime = maxSleepTime;
+    }
+
+    public int getDistance() {
+        return distance;
+    }
+
+    public int getRandomSleepTime() {
+        return new Random().nextInt(maxSleepTime - minSleepTime + 1) + minSleepTime;
+    }
+
+    public synchronized boolean setWinner(int racerNumber) {
+        return (winner.get() == 0) ? winner.compareAndSet(0, racerNumber) : false;
+    }
+
+    public int getWinner() {
+        return winner.get();
+    }
 }
