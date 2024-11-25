@@ -1,12 +1,20 @@
 package multithreading;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
+
+record ReportItem(int number, long time) {
+}
 public class Race {
-    private final int distance;
-    private final int minSleepTime;
-    private final int maxSleepTime;
-    private final AtomicInteger winner = new AtomicInteger(0);
+    private List<ReportItem> reports = new ArrayList<>();
+
+    private int distance;
+    private int minSleepTime;
+    private int maxSleepTime;
+    private LocalDateTime startTime;
 
     public Race(int distance, int minSleepTime, int maxSleepTime) {
         this.distance = distance;
@@ -18,15 +26,22 @@ public class Race {
         return distance;
     }
 
-    public int getRandomSleepTime() {
-        return new Random().nextInt(maxSleepTime - minSleepTime + 1) + minSleepTime;
+    public int getSleepTime() {
+        Random random = new Random();
+        return random.nextInt(maxSleepTime - minSleepTime + 1) + minSleepTime;
     }
 
-    public synchronized boolean setWinner(int racerNumber) {
-        return (winner.get() == 0) ? winner.compareAndSet(0, racerNumber) : false;
+    public void reportOfFinish(int racer) {
+        long time = Duration.between(startTime, LocalDateTime.now()).toMillis();
+        ReportItem report = new ReportItem(racer, time);
+        reports.add(report);
     }
 
-    public int getWinner() {
-        return winner.get();
+    public List<ReportItem> getResult() {
+        return new ArrayList<>(reports);
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 }

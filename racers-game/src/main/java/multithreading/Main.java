@@ -1,37 +1,76 @@
 package multithreading;
 
-import java.util.Arrays;
-import java.util.stream.IntStream;
 
-import view.InputOutput;
-import view.StandardInputOutput;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+
+import view.*;
 
 public class Main {
-    private static final int MIN_SLEEP_TIME = 50;
-    private static final int MAX_SLEEP_TIME = 100;
+    private static final int MAX_THREADS = 2;
+    private static final int MIN_THREADS = 2;
+    private static final int MIN_DISTANCE = 50;
+    private static final int MAX_DISTANCE = 10000;
+    private static final int MIN_SLEEP = 2;
+    private static final int MAX_SLEEP = 5;
 
     public static void main(String[] args) {
         InputOutput io = new StandardInputOutput();
-        int nRacers = io.readInt("Enter number of racers:", "Incorrect input");
-        int distance = io.readInt("Enter distance:", "Incorrect input");
+        Item[] items = getItems();
+        Menu menu = new Menu("Race Game", items);
+        menu.perform(io);
+    }
 
-        Race race = new Race(distance, MIN_SLEEP_TIME, MAX_SLEEP_TIME);
+    private static Item[] getItems() {
+        Item[] res = {
+                Item.of("Start new race", Main::startRace),
+                Item.ofExit()
+        };
+        return res;
+    }
 
-        Racer[] racers = IntStream.rangeClosed(1, nRacers)
-                .mapToObj(i -> new Racer(race, i))
-                .toArray(Racer[]::new);
+    static void startRace(InputOutput io) {
+        int nThreads = io.readNumberRange("Enter number of the racers", "Wrong number of the racers",
+                MIN_THREADS, MAX_THREADS).intValue();
+        int distance = io.readNumberRange("Enter distance",
+                "Wrong Distance", MIN_DISTANCE, MAX_DISTANCE).intValue();
+        Race race = new Race(distance, MIN_SLEEP, MAX_SLEEP);
+        Racer[] racers = new Racer[nThreads];
+        startRacers(racers, race);
+        rateRacers(racers);
+        displayResult(race);
+    }
 
-        System.out.println("Race started!");
+    private static void displayResult(Race race) {
+        List<ReportItem> report = race.getResult();
+        for (int i = 0; i < report.size(); i++) {
+            ReportItem item = report.get(i);
+            System.out.printf(
+                "# %d - racer: %d, time: %dms \n",
+                i + 1,
+                item.number(),
+                item.time()
+            );
+        }
+    }
 
-        Arrays.stream(racers).forEach(Thread::start);
 
-        Arrays.stream(racers).forEach(racer -> {
+    private static void startRacers(Racer[] racers, Race race) {
+        race.setStartTime(LocalDateTime.now());
+        for (int i = 0; i < racers.length; i++) {
+            racers[i] = new Racer(race, i + 1);
+            racers[i].start();
+        }
+    }
+
+    private static void rateRacers(Racer[] racers) {
+        Arrays.stream(racers).forEach(t -> {
             try {
-                racer.join();
+                t.join();
             } catch (InterruptedException e) {
+
             }
         });
-
-        System.out.printf("Congratulations to Racer #%d - the winner!%n", race.getWinner());
     }
 }

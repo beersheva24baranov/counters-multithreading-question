@@ -1,22 +1,25 @@
 package multithreading;
 
-public class Racer extends Thread{
+public class Racer extends Thread {
     private Race race;
     private int number;
+
     public Racer(Race race, int number) {
         this.race = race;
         this.number = number;
     }
-    @Override
-    public void run() {
-        for (int i = 1; i <= race.getDistance(); i++) {
-            System.out.printf("Racer #%d completed in iteration %d%n", number, i);
 
+    public void run() {
+        for (int i = 0; i < race.getDistance(); i++) {
             try {
-                Thread.sleep(race.getRandomSleepTime());
+                sleep(race.getSleepTime());
             } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        race.setWinner(number);
+
+        synchronized (race) {
+            race.reportOfFinish(number);
+        }
     }
 }
